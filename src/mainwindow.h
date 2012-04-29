@@ -1,15 +1,17 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "json.h"
+#include <QDebug>
 #include <QByteArray>
 #include <QCoreApplication>
-#include <QStringList>
-#include <QString>
+#include <QFileInfo>
 #include <QResource>
+#include <QString>
+#include <QStringList>
 #include <QtGui/QMainWindow>
 #include <QtWebKit/QWebView>
 #include <QtWebKit/QWebFrame>
-#include "json.h"
 
 class MainWindow : public QMainWindow
 {

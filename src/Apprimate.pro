@@ -6,7 +6,7 @@
 
 QT       += core gui webkit
 
-TARGET = Apprimate
+TARGET = apprimate
 TEMPLATE = app
 
 
@@ -17,4 +17,4 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h
 
 #avoid creating an app bundle on Mac OSX
-CONFIG -= app_bundle
+#CONFIG -= app_bundle
