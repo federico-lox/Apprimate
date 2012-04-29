@@ -5,6 +5,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 	webView = new QWebView(this);
 	int argLength = arguments.size();
 
+	//TODO: make the following settings be accessible via config and arguments
+	this->setMinimumSize(300, 300);
+	this->resize(600, 400);
+	this->setWindowTitle("MyApp");
+
 	//make the background color of the view match the Desktop environment's default one
 	webView->setStyleSheet("background-color: " + this->palette().window().color().name());
 	//disable scrollbars
