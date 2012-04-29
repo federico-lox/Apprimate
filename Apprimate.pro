@@ -4,13 +4,17 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui webkit
 
 TARGET = Apprimate
 TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+			json.cpp\
+			mainwindow.cpp
 
 HEADERS  += mainwindow.h
+
+#avoid creating an app bundle on Mac OSX
+CONFIG -= app_bundle
