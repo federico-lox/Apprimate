@@ -4,18 +4,26 @@
 #
 #-------------------------------------------------
 
+#Disable debug messages
+#DEFINES += QT_NO_DEBUG_OUTPUT QT_NO_WARNING_OUTPUT
+
 QT       += core gui webkit
 
 TARGET = apprimate
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-			json.cpp\
-			mainwindow.cpp
+SOURCES +=	main.cpp\
+			mainwindow.cpp \
+    commandline.cpp \
+    lib/qt-json/json.cpp
 
 HEADERS  += mainwindow.h \
-    json.h
+    commandline.h \
+    lib/qt-json/json.h
 
 #avoid creating an app bundle on Mac OSX
-#CONFIG -= app_bundle
+#mac: CONFIG -= app_bundle
+
+#eable console window and output (Windows only?)
+win32: CONFIG += console

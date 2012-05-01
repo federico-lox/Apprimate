@@ -1,7 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "json.h"
+#include "lib/qt-json/json.h"
+#include "commandline.h"
 #include <QDebug>
 #include <QByteArray>
 #include <QCoreApplication>
@@ -22,8 +23,8 @@ class MainWindow : public QMainWindow
 		~MainWindow();
 
 	private:
+		CommandLine* cli;
 		QWebView* webView;
-		QStringList arguments;
 };
 
 #endif // MAINWINDOW_H

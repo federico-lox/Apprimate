@@ -1,0 +1,3 @@
+[submodule "src/lib/qt-json"]
+	path = src/lib/qt-json
+	url = git://github.com/federico-lox/qt-json.git
