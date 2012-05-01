@@ -14,7 +14,8 @@ SOURCES += main.cpp\
 			json.cpp\
 			mainwindow.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    json.h
 
 #avoid creating an app bundle on Mac OSX
 #CONFIG -= app_bundle
