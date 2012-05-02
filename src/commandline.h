@@ -22,7 +22,7 @@ class CommandLine
 		CommandLine();
 		~CommandLine();
 		QVariant getOption(const QString &name, const bool &required = false) const;
-		QVariant getOption(const QString &name, const QVariant& defaultValue, const bool &required = false) const;
+		QVariant getOption(const QString &name, const QVariant& defaultValue) const;
 		const Options& getOptions() const;
 		QString getArgument(const int &index) const;
 		const QStringList& getArguments() const;

@@ -55,9 +55,10 @@ QVariant CommandLine::getOption(const QString &name, const bool &required) const
 	return ret;
 }
 
-QVariant CommandLine::getOption(const QString &name, const QVariant& defaultValue, const bool &required) const
+QVariant CommandLine::getOption(const QString &name, const QVariant& defaultValue) const
 {
-	return (this->getOption(name).isNull()) ? defaultValue : this->getOption(name);
+	QVariant ret = this->getOption(name);
+	return (ret.isNull()) ? defaultValue : ret;
 }
 
 const Options& CommandLine::getOptions() const
