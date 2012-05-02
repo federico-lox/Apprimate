@@ -5,6 +5,7 @@
 #ifndef COMMANDLINE_H
 #define COMMANDLINE_H
 
+#include <stdexcept>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QHash>
@@ -20,15 +21,22 @@ class CommandLine
 	public:
 		CommandLine();
 		~CommandLine();
-		const QVariant& getOption(const QString &name) const;
-		const QVariant& getOption(const QString &name, const QVariant& defaultValue) const;
+		QVariant getOption(const QString &name, const bool &required = false) const;
+		QVariant getOption(const QString &name, const QVariant& defaultValue, const bool &required = false) const;
 		const Options& getOptions() const;
-		const QString& getArgument(const int &index) const;
+		QString getArgument(const int &index) const;
 		const QStringList& getArguments() const;
 
 	private:
 		QStringList m_arguments;
 		Options m_options;
+};
+
+class MissingRequiredOptionException : public std::runtime_error
+{
+	public:
+		explicit MissingRequiredOptionException(std::string what);
+		virtual ~MissingRequiredOptionException() throw() {}
 };
 
 #endif // COMMANDLINE_H

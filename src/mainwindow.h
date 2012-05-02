@@ -7,6 +7,7 @@
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QFileInfo>
+#include <QMap>
 #include <QResource>
 #include <QString>
 #include <QStringList>
@@ -24,6 +25,7 @@ class MainWindow : public QMainWindow
 
 	private:
 		CommandLine* cli;
+		QMap<QString, QVariant>* config;
 		QWebView* webView;
 };
 
