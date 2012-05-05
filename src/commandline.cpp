@@ -43,22 +43,25 @@ CommandLine::~CommandLine()
 	this->m_options.clear();
 }
 
-QVariant CommandLine::getOption(const QString &name, const bool &required) const
+bool CommandLine::hasOption(const QString& name) const
 {
-	QVariant ret = (this->m_options.contains(name)) ?
-		this->m_options[name] :
-		QVariant();
+	return this->m_options.contains(name);
+}
 
-	if(required == true && (ret.isNull() || ret == ""))
+QVariant CommandLine::getOption(const QString& name, const bool& required) const
+{
+	bool exists = this->hasOption(name);
+
+	if(required == true && !exists)
 		throw new MissingRequiredOptionException("Missing required option " + name.toStdString());
 
+	QVariant ret = (exists) ? this->m_options[name] : QVariant();
 	return ret;
 }
 
-QVariant CommandLine::getOption(const QString &name, const QVariant& defaultValue) const
+QVariant CommandLine::getOption(const QString& name, const QVariant& defaultValue) const
 {
-	QVariant ret = this->getOption(name);
-	return (ret.isNull()) ? defaultValue : ret;
+	return (this->hasOption(name)) ? this->getOption(name) : defaultValue;
 }
 
 const Options& CommandLine::getOptions() const
@@ -66,7 +69,7 @@ const Options& CommandLine::getOptions() const
 	return this->m_options;
 }
 
-QString CommandLine::getArgument(const int &index) const
+QString CommandLine::getArgument(const int& index) const
 {
 	return this->m_arguments.at(index);
 }

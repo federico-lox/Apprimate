@@ -15,6 +15,8 @@
 #include <QtWebKit/QWebView>
 #include <QtWebKit/QWebFrame>
 
+typedef QMap<QString, QVariant> Configuration;
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -24,8 +26,14 @@ class MainWindow : public QMainWindow
 		~MainWindow();
 
 	private:
+		const char* CONF_OPTION_NAME;
+		const char* CONF_WINDOW_TITLE;
+		const char* CONF_WINDOW_MIN_HEIGHT;
+		const char* CONF_WINDOW_MIN_WIDTH;
+		const char* CONF_WINDOW_HEIGHT;
+		const char* CONF_WINDOW_WIDTH;
 		CommandLine* cli;
-		QMap<QString, QVariant>* config;
+		Configuration conf;
 		QWebView* webView;
 };
 

@@ -1,42 +1,76 @@
 #include "mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
+	CONF_OPTION_NAME = "conf";
+	CONF_WINDOW_TITLE = "windowTitle";
+	CONF_WINDOW_MIN_HEIGHT = "windowMinHeight";
+	CONF_WINDOW_MIN_WIDTH = "windowMinWidth";
+	CONF_WINDOW_HEIGHT = "windowHeight";
+	CONF_WINDOW_WIDTH = "windowWidth";
+
 	this->cli = new CommandLine();
 	this->webView = new QWebView(this);
-	this->config = NULL;
-	QVariant confFilePath = this->cli->getOption("conf");
 
-	if(!confFilePath.isNull())
+	//default settings
+	this->conf[CONF_WINDOW_TITLE] = "Apprimate";
+	this->conf[CONF_WINDOW_MIN_HEIGHT] = 300;
+	this->conf[CONF_WINDOW_MIN_WIDTH] = 300;
+	this->conf[CONF_WINDOW_WIDTH] = 600;
+	this->conf[CONF_WINDOW_HEIGHT] = 400;
+
+	if(this->cli->hasOption(CONF_OPTION_NAME))
 	{
-		QString path = confFilePath.toString();
-		QFile f(path);
+		QString confFilePath = this->cli->getOption(CONF_OPTION_NAME).toString();
 
-		if(!f.open(QIODevice::ReadOnly | QIODevice::Text))
+		if(!confFilePath.isEmpty() && !confFilePath.isNull())
 		{
-			qCritical() << "Could not open configuration file from " << path;
-			exit(1);
+			QFile f(confFilePath);
+
+			if(!f.open(QIODevice::ReadOnly | QIODevice::Text))
+			{
+				qCritical() << "Could not open configuration file from " << confFilePath;
+				exit(1);
+			}
+
+			QByteArray data = f.readAll();
+			bool success;
+			f.close();
+
+			QVariant res = QtJson::Json::parse(data.constData(), success);
+			data.clear();
+
+			if(!success)
+			{
+				qCritical() << "Could not parse configuration file %s" << confFilePath;
+				QCoreApplication::exit(1);
+				return;
+			}
+
+			Configuration tmp = res.toMap();
+
+			//let configuration file override default settings
+			foreach(QString key, tmp.keys())
+			{
+				this->conf[key] = tmp.value(key);
+			}
 		}
 
-		QByteArray data = f.readAll();
-		bool success;
-		f.close();
+		confFilePath.clear();
+	}
 
-		QVariant res = QtJson::Json::parse(QString(data), success);
-
-		if(!success)
-		{
-			qCritical() << "Could not parse configuration file %s" << path;
-			QCoreApplication::exit(1);
-			return;
-		}
-
-		*(this->config) = res.toMap();
+	//let commandline options override configuration file
+	foreach(QString key, this->cli->getOptions().keys())
+	{
+		this->conf[key] = this->cli->getOption(key);
 	}
 
 	//TODO: make the following settings be accessible via config and arguments
-	this->setMinimumSize(300, 300);
-	this->resize(600, 400);
-	this->setWindowTitle("MyApp");
+	this->setMinimumSize(
+		this->conf.value(CONF_WINDOW_MIN_WIDTH).toInt(),
+		this->conf.value(CONF_WINDOW_MIN_HEIGHT).toInt()
+	);
+	this->resize(this->conf.value(CONF_WINDOW_WIDTH).toInt(), this->conf.value(CONF_WINDOW_HEIGHT).toInt());
+	this->setWindowTitle(this->conf.value(CONF_WINDOW_TITLE).toString());
 
 	//make the background color of the view match the Desktop environment's default one
 	this->webView->setStyleSheet("background-color: " + this->palette().window().color().name());
@@ -47,22 +81,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 	p->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAlwaysOff);
 	p = NULL;
 
-	QByteArray argsData = QtJson::Json::serialize(this->cli->getArguments());
-	QByteArray optsData = QtJson::Json::serialize(this->cli->getOptions());
-
 	this->webView
 		->page()
 		->mainFrame()
 		->evaluateJavaScript(
-			"window.arguments = "\
-			//escape quotes for letting JSON.parse do its' job
-			"JSON.parse(\"" + argsData.replace("\"", "\\\"") + "\");"\
-			"window.options = "\
-			"JSON.parse(\"" + optsData.replace("\"", "\\\"") + "\");"\
+			"window.commandline = {"\
+				//escape quotes for letting JSON.parse do its' job
+				"arguments: JSON.parse(\"" + QtJson::Json::serialize(this->cli->getArguments()).replace("\"", "\\\"") + "\"),"\
+				"options: JSON.parse(\"" + QtJson::Json::serialize(this->conf).replace("\"", "\\\"") + "\")"\
+			"};"
 		 );
-
-	argsData.clear();
-	optsData.clear();
 
 	if(this->cli->getArguments().size() > 1)
 	{
@@ -88,16 +116,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 	else
 	{
 		//DEBUG
-		this->webView->setHtml("<script>document.write('Parameters: ' + window.arguments.join(','));</script>");
+		this->webView->setHtml("<script>document.write('Arguments: ' + window.commandline.arguments.join(', '));</script>");
 	}
 
 	this->setCentralWidget(this->webView);
 }
 
 MainWindow::~MainWindow(){
-	if(this->config != NULL)
-		delete this->config;
-
 	delete this->webView;
 	delete this->cli;
 }
