@@ -9,7 +9,7 @@
 
 QT       += core gui webkit
 
-TARGET = apprimate
+TARGET = Apprimate
 TEMPLATE = app
 
 
@@ -26,4 +26,4 @@ HEADERS  += mainwindow.h \
 #mac: CONFIG -= app_bundle
 
 #eable console window and output (Windows only?)
-win32: CONFIG += console
+#win32: CONFIG += console
