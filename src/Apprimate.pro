@@ -9,21 +9,29 @@
 
 QT       += core gui webkit
 
-TARGET = Apprimate
-TEMPLATE = app
+TARGET    = apprimate
+TEMPLATE  = app
 
 
 SOURCES +=	main.cpp\
 			mainwindow.cpp \
-    commandline.cpp \
-    lib/qt-json/json.cpp
+			commandline.cpp \
+			lib/qt-json/json.cpp
 
 HEADERS  += mainwindow.h \
-    commandline.h \
-    lib/qt-json/json.h
+			commandline.h \
+			lib/qt-json/json.h
 
-#avoid creating an app bundle on Mac OSX
-#mac: CONFIG -= app_bundle
+macx {
+	LIBS += -framework Foundation
+	TARGET = Apprimate
+
+	#avoid creating an app bundle on Mac OSX
+	#CONFIG -= app_bundle
+
+	HEADERS += mac.h
+	OBJECTIVE_SOURCES += mac.mm
+}
 
 #eable console window and output (Windows only?)
 #win32: CONFIG += console

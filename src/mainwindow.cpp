@@ -1,26 +1,32 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
-	CONF_OPTION_NAME = "conf";
-	CONF_WINDOW_TITLE = "windowTitle";
-	CONF_WINDOW_MIN_HEIGHT = "windowMinHeight";
-	CONF_WINDOW_MIN_WIDTH = "windowMinWidth";
-	CONF_WINDOW_HEIGHT = "windowHeight";
-	CONF_WINDOW_WIDTH = "windowWidth";
+//default values
+const int MainWindow::DEFAULT_WIDTH = 640;
+const int MainWindow::DEFAULT_HEIGHT = 480;
+const bool MainWindow::DEFAULT_ALLOW_FULLSCREEN = false;
 
-	this->cli = new CommandLine();
-	this->webView = new QWebView(this);
+//available options
+const char* MainWindow::CONF_OPTION_NAME = "conf";
+const char* MainWindow::CONF_WINDOW_TITLE = "windowTitle";
+const char* MainWindow::CONF_WINDOW_MIN_HEIGHT = "windowMinHeight";
+const char* MainWindow::CONF_WINDOW_MIN_WIDTH = "windowMinWidth";
+const char* MainWindow::CONF_WINDOW_HEIGHT = "windowHeight";
+const char* MainWindow::CONF_WINDOW_WIDTH = "windowWidth";
+const char* MainWindow::CONF_ALLOW_FULLSCREEN = "allowFullscreen";
+
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
+	cli = new CommandLine();
+	webView = new QWebView(this);
 
 	//default settings
-	this->conf[CONF_WINDOW_TITLE] = "Apprimate";
-	this->conf[CONF_WINDOW_MIN_HEIGHT] = 300;
-	this->conf[CONF_WINDOW_MIN_WIDTH] = 300;
-	this->conf[CONF_WINDOW_WIDTH] = 600;
-	this->conf[CONF_WINDOW_HEIGHT] = 400;
+	conf[CONF_WINDOW_TITLE] = "Apprimate";
+	conf[CONF_WINDOW_MIN_WIDTH] = conf[CONF_WINDOW_WIDTH] = DEFAULT_WIDTH;
+	conf[CONF_WINDOW_MIN_HEIGHT] = conf[CONF_WINDOW_HEIGHT] = DEFAULT_HEIGHT;
+	conf[CONF_ALLOW_FULLSCREEN] = DEFAULT_ALLOW_FULLSCREEN;
 
-	if(this->cli->hasOption(CONF_OPTION_NAME))
+	if(cli->hasOption(CONF_OPTION_NAME))
 	{
-		QString confFilePath = this->cli->getOption(CONF_OPTION_NAME).toString();
+		QString confFilePath = cli->getOption(CONF_OPTION_NAME).toString();
 
 		if(!confFilePath.isEmpty() && !confFilePath.isNull())
 		{
@@ -51,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 			//let configuration file override default settings
 			foreach(QString key, tmp.keys())
 			{
-				this->conf[key] = tmp.value(key);
+				conf[key] = tmp.value(key);
 			}
 		}
 
@@ -59,42 +65,48 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 	}
 
 	//let commandline options override configuration file
-	foreach(QString key, this->cli->getOptions().keys())
+	foreach(QString key, cli->getOptions().keys())
 	{
-		this->conf[key] = this->cli->getOption(key);
+		conf[key] = cli->getOption(key);
 	}
 
-	//TODO: make the following settings be accessible via config and arguments
-	this->setMinimumSize(
-		this->conf.value(CONF_WINDOW_MIN_WIDTH).toInt(),
-		this->conf.value(CONF_WINDOW_MIN_HEIGHT).toInt()
+	setMinimumSize(
+		conf.value(CONF_WINDOW_MIN_WIDTH).toInt(),
+		conf.value(CONF_WINDOW_MIN_HEIGHT).toInt()
 	);
-	this->resize(this->conf.value(CONF_WINDOW_WIDTH).toInt(), this->conf.value(CONF_WINDOW_HEIGHT).toInt());
-	this->setWindowTitle(this->conf.value(CONF_WINDOW_TITLE).toString());
+	resize(conf.value(CONF_WINDOW_WIDTH).toInt(), conf.value(CONF_WINDOW_HEIGHT).toInt());
+	setWindowTitle(conf.value(CONF_WINDOW_TITLE).toString());
+
+	if(conf.value(CONF_ALLOW_FULLSCREEN).toBool() == true)
+	{
+		allowFullscreen();
+	}
 
 	//make the background color of the view match the Desktop environment's default one
 	this->webView->setStyleSheet("background-color: " + this->palette().window().color().name());
 	//disable scrollbars
 	//TODO: make this optional via config and arguments
-	QWebPage* p = this->webView->page();
+	QWebPage* p = webView->page();
 	p->mainFrame()->setScrollBarPolicy(Qt::Horizontal, Qt::ScrollBarAlwaysOff);
 	p->mainFrame()->setScrollBarPolicy(Qt::Vertical, Qt::ScrollBarAlwaysOff);
 	p = NULL;
 
-	this->webView
-		->page()
-		->mainFrame()
-		->evaluateJavaScript(
-			"window.commandline = {"\
-				//escape quotes for letting JSON.parse do its' job
-				"arguments: JSON.parse(\"" + QtJson::Json::serialize(this->cli->getArguments()).replace("\"", "\\\"") + "\"),"\
-				"options: JSON.parse(\"" + QtJson::Json::serialize(this->conf).replace("\"", "\\\"") + "\")"\
-			"};"
-		 );
+	//allow the JS context to access the configuration
+	webView	->page()
+			->mainFrame()
+			->evaluateJavaScript(
+				"window.commandline = {"\
+					//escape quotes for letting JSON.parse do its' job
+					"arguments: JSON.parse(\"" +
+						QtJson::Json::serialize(cli->getArguments()).replace("\"", "\\\"") + "\"),"\
+					"options: JSON.parse(\"" +
+						QtJson::Json::serialize(conf).replace("\"", "\\\"") + "\")"\
+				"};"
+			 );
 
-	if(this->cli->getArguments().size() > 1)
+	if(cli->getArguments().size() > 1)
 	{
-		QString param = this->cli->getArgument(1);
+		QString param = cli->getArgument(1);
 		QUrl url;
 
 		//QUrl doesn't handle relative file paths gracefully
@@ -109,20 +121,32 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 		url = QUrl::fromUserInput(param);
 
 		if(url.isValid())
-			this->webView->load(url);
+			webView->load(url);
 		else
-			this->webView->setHtml(param);
+			webView->setHtml(param);
 	}
 	else
 	{
 		//DEBUG
-		this->webView->setHtml("<script>document.write('Arguments: ' + window.commandline.arguments.join(', '));</script>");
+		webView->setHtml(
+			"<script>"\
+				"document.write("\
+					"'Arguments: ' + window.commandline.arguments.join(', ')"\
+				");"\
+			"</script>"
+		);
 	}
 
-	this->setCentralWidget(this->webView);
+	setCentralWidget(webView);
 }
 
 MainWindow::~MainWindow(){
-	delete this->webView;
-	delete this->cli;
+	delete webView;
+	delete cli;
+}
+
+void MainWindow::allowFullscreen(){
+#ifdef Q_WS_MACX
+	Mac::addFullscreenSwitch(this);
+#endif
 }

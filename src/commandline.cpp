@@ -15,68 +15,68 @@ CommandLine::CommandLine()
 			{
 				//--option=value
 				QStringList tokens = strippedArg.toString().split('=');
-				this->m_options[QString(tokens[0])] = QVariant(tokens[1]);
+				m_options[QString(tokens[0])] = QVariant(tokens[1]);
 				tokens.clear();
 			}
 			else
 			{
 				//--option
-				this->m_options[strippedArg.toString()] = QVariant(true);
+				m_options[strippedArg.toString()] = QVariant(true);
 			}
 		}
 		else if(arg.startsWith('-'))
 		{
 			//-o
 			QStringRef strippedArg = arg.rightRef(arg.size() - 1);
-			this->m_options[strippedArg.toString()] = QVariant(true);
+			m_options[strippedArg.toString()] = QVariant(true);
 		}
 		else
 		{
-			this->m_arguments.append(arg);
+			m_arguments.append(arg);
 		}
 	}
 }
 
 CommandLine::~CommandLine()
 {
-	this->m_arguments.clear();
-	this->m_options.clear();
+	m_arguments.clear();
+	m_options.clear();
 }
 
 bool CommandLine::hasOption(const QString& name) const
 {
-	return this->m_options.contains(name);
+	return m_options.contains(name);
 }
 
 QVariant CommandLine::getOption(const QString& name, const bool& required) const
 {
-	bool exists = this->hasOption(name);
+	bool exists = hasOption(name);
 
 	if(required == true && !exists)
 		throw new MissingRequiredOptionException("Missing required option " + name.toStdString());
 
-	QVariant ret = (exists) ? this->m_options[name] : QVariant();
+	QVariant ret = (exists) ? m_options[name] : QVariant();
 	return ret;
 }
 
 QVariant CommandLine::getOption(const QString& name, const QVariant& defaultValue) const
 {
-	return (this->hasOption(name)) ? this->getOption(name) : defaultValue;
+	return (hasOption(name)) ? getOption(name) : defaultValue;
 }
 
 const Options& CommandLine::getOptions() const
 {
-	return this->m_options;
+	return m_options;
 }
 
 QString CommandLine::getArgument(const int& index) const
 {
-	return this->m_arguments.at(index);
+	return m_arguments.at(index);
 }
 
 const QStringList& CommandLine::getArguments() const
 {
-	return this->m_arguments;
+	return m_arguments;
 }
 
 MissingRequiredOptionException::MissingRequiredOptionException(std::string what)
