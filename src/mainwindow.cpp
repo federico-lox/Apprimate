@@ -17,6 +17,9 @@ const char* MainWindow::CONF_ALLOW_FULLSCREEN = "allowFullscreen";
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 	cli = new CommandLine();
 	webView = new QWebView(this);
+#ifdef QTMAC_H
+	macNativeWindow = new Mac::NativeWindow(this);
+#endif
 
 	//default settings
 	conf[CONF_WINDOW_TITLE] = "Apprimate";
@@ -144,9 +147,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 
 void MainWindow::setFullScreen(bool checked)
 {
-#ifdef Q_WS_MACX
-	//OSX >= 10.7 has a different natice way to toggle fullscreen mode
-	Mac::toggleFullscreen(this);
+#ifdef QTMAC_H
+	//OSX >= 10.7 has a different native way to toggle fullscreen mode
+	if(checked)
+		macNativeWindow->showFullScreen();
+	else
+	{
+		macNativeWindow->showNormal();
+	}
 #else
 	if(checked)
 		showFullScreen();
@@ -157,13 +165,13 @@ void MainWindow::setFullScreen(bool checked)
 #endif
 }
 
-#ifdef Q_WS_MACX
+#ifdef QTMAC_H
 void MainWindow::viewMenuAboutToShow()
 {
 	//OSX >= 10.7 has a different way to toggle fullscreen mode
 	//and the view menu needs to be kept in sync
 	fullScreenAction->blockSignals(true);//avoid signal loops
-	fullScreenAction->setChecked(Mac::isFullScreen(this));
+	fullScreenAction->setChecked(macNativeWindow->isFullScreen());
 	fullScreenAction->blockSignals(false);//re-enable signals
 }
 #endif
@@ -178,7 +186,7 @@ void MainWindow::createMenus()
 		fullScreenAction->setCheckable(true);
 		fullScreenAction->setVisible(conf.value(CONF_ALLOW_FULLSCREEN).toBool());
 
-#ifdef Q_WS_MACX
+#ifdef QTMAC_H
 		connect(viewMenu, SIGNAL(aboutToShow()), this, SLOT(viewMenuAboutToShow()));
 #endif
 		connect(fullScreenAction, SIGNAL(toggled(bool)), this, SLOT(setFullScreen(bool)));
@@ -193,8 +201,8 @@ void MainWindow::createMenus()
 
 void MainWindow::allowFullscreen()
 {
-#ifdef Q_WS_MACX
-	Mac::addFullscreenSwitch(this);
+#ifdef QTMAC_H
+	macNativeWindow->enableFullScreen();
 #endif
 
 	//this function can be called more than once
@@ -207,6 +215,9 @@ MainWindow::~MainWindow(){
 	if(fullScreenAction != NULL)
 		delete fullScreenAction;
 
+#ifdef QTMAC_H
+	delete macNativeWindow;
+#endif
 	delete webView;
 	delete cli;
 }

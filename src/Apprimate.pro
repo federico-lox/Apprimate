@@ -26,8 +26,8 @@ macx {
 
 	#tell linker to load Cocoa Foundation for Obj-C code
 	LIBS += -framework Foundation
-	HEADERS += mac.h
-	OBJECTIVE_SOURCES += mac.mm
+	HEADERS += lib/qt-mac/mac.h
+	OBJECTIVE_SOURCES += lib/qt-mac/mac.mm
 
 	#avoid creating an app bundle on Mac OSX
 	#CONFIG -= app_bundle

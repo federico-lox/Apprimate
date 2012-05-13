@@ -1,13 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-class MainWindow;
-
 #include "lib/qt-json/json.h"
 #include "commandline.h"
 
 #ifdef Q_WS_MACX
-#include "mac.h"
+#include "lib/qt-mac/mac.h"
 #endif
 
 #include <QAction>
@@ -50,6 +48,9 @@ class MainWindow : public QMainWindow
 		CommandLine* cli;
 		//TODO: should probably be static, so as to share it among different windows
 		Configuration conf;
+#ifdef Q_WS_MACX
+		Mac::NativeWindow* macNativeWindow;
+#endif
 		QWebView* webView;
 		void createMenus();
 		void allowFullscreen();
