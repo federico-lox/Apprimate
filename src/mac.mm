@@ -42,7 +42,7 @@ bool Mac::isFullScreen(MainWindow *window)
 		NSWindow *nswindow = [nsview window];
 		NSUInteger sm = [nswindow styleMask];
 
-		return ( (sm & NSFullScreenWindowMask) != 0);
+		return ((sm & NSFullScreenWindowMask) != 0);
 	}
 	else
 		return window->isFullScreen();
