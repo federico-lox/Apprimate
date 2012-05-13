@@ -12,7 +12,6 @@ QT       += core gui webkit
 TARGET    = apprimate
 TEMPLATE  = app
 
-
 SOURCES +=	main.cpp\
 			mainwindow.cpp \
 			commandline.cpp \
@@ -23,14 +22,15 @@ HEADERS  += mainwindow.h \
 			lib/qt-json/json.h
 
 macx {
-	LIBS += -framework Foundation
 	TARGET = Apprimate
+
+	#tell linker to load Cocoa Foundation for Obj-C code
+	LIBS += -framework Foundation
+	HEADERS += mac.h
+	OBJECTIVE_SOURCES += mac.mm
 
 	#avoid creating an app bundle on Mac OSX
 	#CONFIG -= app_bundle
-
-	HEADERS += mac.h
-	OBJECTIVE_SOURCES += mac.mm
 }
 
 #eable console window and output (Windows only?)

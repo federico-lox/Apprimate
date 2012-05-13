@@ -6,5 +6,7 @@
 namespace Mac
 {
 	void addFullscreenSwitch(MainWindow* window);
+	void toggleFullscreen(MainWindow* window);
+	bool isFullScreen(MainWindow *window);
 }
 #endif // MAC_H

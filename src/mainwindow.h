@@ -10,11 +10,14 @@ class MainWindow;
 #include "mac.h"
 #endif
 
-#include <QDebug>
+#include <QAction>
 #include <QByteArray>
 #include <QCoreApplication>
+#include <QDebug>
 #include <QFileInfo>
 #include <QMap>
+#include <QMenu>
+#include <QMenuBar>
 #include <QResource>
 #include <QString>
 #include <QStringList>
@@ -43,11 +46,19 @@ class MainWindow : public QMainWindow
 		static const char* CONF_WINDOW_HEIGHT;
 		static const char* CONF_WINDOW_WIDTH;
 		static const char* CONF_ALLOW_FULLSCREEN;
+		QAction* fullScreenAction;
 		CommandLine* cli;
 		//TODO: should probably be static, so as to share it among different windows
 		Configuration conf;
 		QWebView* webView;
+		void createMenus();
 		void allowFullscreen();
+
+	private slots:
+		void setFullScreen(bool checked);
+#ifdef Q_WS_MACX
+		void viewMenuAboutToShow();
+#endif
 };
 
 #endif // MAINWINDOW_H

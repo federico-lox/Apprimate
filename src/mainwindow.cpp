@@ -70,6 +70,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 		conf[key] = cli->getOption(key);
 	}
 
+	//process menues and actions after processing all the config settings
+	createMenus();
 	setMinimumSize(
 		conf.value(CONF_WINDOW_MIN_WIDTH).toInt(),
 		conf.value(CONF_WINDOW_MIN_HEIGHT).toInt()
@@ -77,7 +79,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 	resize(conf.value(CONF_WINDOW_WIDTH).toInt(), conf.value(CONF_WINDOW_HEIGHT).toInt());
 	setWindowTitle(conf.value(CONF_WINDOW_TITLE).toString());
 
-	if(conf.value(CONF_ALLOW_FULLSCREEN).toBool() == true)
+	if(conf.value(CONF_ALLOW_FULLSCREEN).toBool())
 	{
 		allowFullscreen();
 	}
@@ -140,13 +142,71 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 	setCentralWidget(webView);
 }
 
-MainWindow::~MainWindow(){
-	delete webView;
-	delete cli;
+void MainWindow::setFullScreen(bool checked)
+{
+#ifdef Q_WS_MACX
+	//OSX >= 10.7 has a different natice way to toggle fullscreen mode
+	Mac::toggleFullscreen(this);
+#else
+	if(checked)
+		showFullScreen();
+	else
+	{
+		showNormal();
+	}
+#endif
 }
 
-void MainWindow::allowFullscreen(){
+#ifdef Q_WS_MACX
+void MainWindow::viewMenuAboutToShow()
+{
+	//OSX >= 10.7 has a different way to toggle fullscreen mode
+	//and the view menu needs to be kept in sync
+	fullScreenAction->blockSignals(true);//avoid signal loops
+	fullScreenAction->setChecked(Mac::isFullScreen(this));
+	fullScreenAction->blockSignals(false);//re-enable signals
+}
+#endif
+
+void MainWindow::createMenus()
+{
+	if(conf.value(CONF_ALLOW_FULLSCREEN).toBool())
+	{
+		QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
+		fullScreenAction = new QAction(tr("Fullscreen"), this);
+
+		fullScreenAction->setCheckable(true);
+		fullScreenAction->setVisible(conf.value(CONF_ALLOW_FULLSCREEN).toBool());
+
+#ifdef Q_WS_MACX
+		connect(viewMenu, SIGNAL(aboutToShow()), this, SLOT(viewMenuAboutToShow()));
+#endif
+		connect(fullScreenAction, SIGNAL(toggled(bool)), this, SLOT(setFullScreen(bool)));
+		viewMenu->addAction(fullScreenAction);
+		viewMenu = NULL;
+	}
+	else
+	{
+		fullScreenAction = NULL;
+	}
+}
+
+void MainWindow::allowFullscreen()
+{
 #ifdef Q_WS_MACX
 	Mac::addFullscreenSwitch(this);
 #endif
+
+	//this function can be called more than once
+	//avoid setting the property value if not needed
+	if(fullScreenAction != NULL && !(fullScreenAction->isEnabled()))
+		fullScreenAction->setVisible(true);
+}
+
+MainWindow::~MainWindow(){
+	if(fullScreenAction != NULL)
+		delete fullScreenAction;
+
+	delete webView;
+	delete cli;
 }
