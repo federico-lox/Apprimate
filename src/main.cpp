@@ -1,3 +1,9 @@
+/**
+ * @author Federico "Lox" Lucignano <http://plus.ly/federico.lox>
+ * 
+ * @see https://github.com/federico-lox/Apprimate
+ */
+
 #include <QtGui/QApplication>
 #include "mainwindow.h"
 
